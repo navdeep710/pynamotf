@@ -1,7 +1,7 @@
 "conversion logic for pynamo models -> terraform representation"
 
-import json, pynamodb.attributes
-from .formatter import Raw, Indenter, TFBlock, TFResource
+import pynamodb.attributes
+from .formatter import Raw, TFBlock, TFResource
 
 # translation lookup. warning: 'RANGE' is a guess
 KEY_TYPES = {'HASH': 'hash_key', 'RANGE': 'range_key'}
@@ -26,6 +26,7 @@ def model_to_resource(model, billing_mode='PROVISIONED', tags=None, ignore_capac
 
   # indexes
   all_index_keys = set()
+  # pylint: disable=protected-access
   for index in model._get_indexes()['global_secondary_indexes']:
     assert index['projection']['ProjectionType'] != 'INCLUDE' # we don't support 'non_key_attributes' field?
     dets = [

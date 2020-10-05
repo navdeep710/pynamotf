@@ -1,0 +1,4 @@
+[FORMAT]
+
+indent-string='  '
+max-line-length=180
