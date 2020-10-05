@@ -1,8 +1,7 @@
 "conversion logic for pynamo models -> terraform representation"
 
 import json, pynamodb.attributes
-from .formatter import Raw, Indenter
-from .models import TFBlock, TFResource
+from .formatter import Raw, Indenter, TFBlock, TFResource
 
 # translation lookup. warning: 'RANGE' is a guess
 KEY_TYPES = {'HASH': 'hash_key', 'RANGE': 'range_key'}
@@ -13,14 +12,11 @@ def attr_type(attr):
   # warning: codebase makes it look like these are one-letter codes, but REPL prints out 'String'. Cross fingers.
   return attr.attr_type[0]
 
-def envify(name):
-  "turn a name into a per-env name"
-  return '%s-${var.envname}' % name
-
-def render_model(model, billing_mode='PROVISIONED', tags=None, ignore_capacity=True):
-  "render a dynamo model as terraform"
+def model_to_resource(model, billing_mode='PROVISIONED', tags=None, ignore_capacity=True, transform_name=lambda x: x):
+  "make a TFResource from a pynamodb.Model"
+  assert issubclass(model, pynamodb.models.Model)
   res = TFResource('aws_dynamodb_table', model.Meta.table_name)
-  res.entries.append(('name', envify(model.Meta.table_name))) # envname bc this is globally unique
+  res.entries.append(('name', transform_name(model.Meta.table_name))) # envname bc this is globally unique
   if billing_mode == 'PROVISIONED':
     res.entries.append(('read_capacity', model.Meta.read_capacity_units))
     res.entries.append(('write_capacity', model.Meta.write_capacity_units))
@@ -34,7 +30,7 @@ def render_model(model, billing_mode='PROVISIONED', tags=None, ignore_capacity=T
     assert index['projection']['ProjectionType'] != 'INCLUDE' # we don't support 'non_key_attributes' field?
     dets = [
       # note: not sure this needs to be envified (i.e. globally unique name) but no harm in it probably
-      ('name', envify(index['index_name'])),
+      ('name', transform_name(index['index_name'])),
       ('projection_type', index['projection']['ProjectionType']),
     ]
     if billing_mode == 'PROVISIONED':
@@ -62,4 +58,4 @@ def render_model(model, billing_mode='PROVISIONED', tags=None, ignore_capacity=T
     ]))
   if tags:
     res.entries.append(('tags', tags))
-  print(str(res.format(Indenter())))
+  return res
