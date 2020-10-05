@@ -10,6 +10,7 @@ jobs:
         python-version: '>=3.6'
     - name: deps
       run: |
+        pip install -e .
         pip install pytest pylint
     - name: test
       run: pytest
