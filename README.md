@@ -16,7 +16,7 @@ pip install git+https://github.com/abe-winter/pynamotf.git
 
 ```python
 from pynamodb.models import Model
-from pynamotf import model_to_resource
+from pynamotf.convert import model_to_resource
 
 # define your models somewhere
 class Table(Model):
