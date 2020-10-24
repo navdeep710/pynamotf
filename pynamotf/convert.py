@@ -17,6 +17,8 @@ def model_to_resource(model, billing_mode='PROVISIONED', tags=None, ignore_capac
   assert issubclass(model, pynamodb.models.Model)
   res = TFResource('aws_dynamodb_table', model.Meta.table_name)
   res.entries.append(('name', transform_name(model.Meta.table_name))) # envname bc this is globally unique
+  if hasattr(model.Meta, "billing_mode"):
+    billing_mode = model.Meta.billing_mode
   if billing_mode == 'PROVISIONED':
     res.entries.append(('read_capacity', model.Meta.read_capacity_units))
     res.entries.append(('write_capacity', model.Meta.write_capacity_units))
