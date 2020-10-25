@@ -1,0 +1,6 @@
+botocore==1.19.4
+jmespath==0.10.0
+pynamodb==4.3.3
+python-dateutil==2.8.1
+six==1.15.0
+urllib3==1.25.11
